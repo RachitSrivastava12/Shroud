@@ -1,0 +1,230 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://api.fontshare.com/v2/css?f[]=tanker@400&f[]=jetbrains-mono@400,500,700&f[]=satoshi@400,500,700,900&display=swap");
+
+:root {
+  --paper: #F2EEE5;
+  --cream: #E9E3D6;
+  --ink: #141312;
+  --graphite: #2A2724;
+  --muted: #8C857A;
+  --blood: #B4261E;
+  --redacted: #0F0E0D;
+  --accent: #C8541C;
+  --ok: #1E5128;
+}
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Satoshi", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* subtle paper grain overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/></svg>");
+  mix-blend-mode: multiply;
+  opacity: 0.12;
+  z-index: 1;
+}
+
+/* display font utility */
+.font-display {
+  font-family: "Tanker", "Canela", "GT Sectra", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.font-mono {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-variant-ligatures: none;
+}
+
+.eyebrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--graphite);
+}
+
+/* hairline rules */
+.hairline {
+  border-color: var(--ink);
+  border-width: 1px;
+}
+
+/* redacted bar — the visual metaphor for "shielded" */
+.redacted {
+  position: relative;
+  display: inline-block;
+  color: transparent;
+  user-select: none;
+}
+.redacted::before {
+  content: "";
+  position: absolute;
+  inset: 0.15em -0.3em 0.2em -0.3em;
+  background: var(--redacted);
+  transform: skewX(-3deg);
+}
+
+/* scan line overlay for the "private" data panels */
+.scanlines {
+  position: relative;
+  overflow: hidden;
+}
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(20, 19, 18, 0) 0px,
+    rgba(20, 19, 18, 0) 2px,
+    rgba(20, 19, 18, 0.04) 2px,
+    rgba(20, 19, 18, 0.04) 3px
+  );
+}
+
+/* marquee for the ticker */
+.marquee {
+  display: flex;
+  gap: 3rem;
+  white-space: nowrap;
+  animation: marquee 45s linear infinite;
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* button reset */
+.btn {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.85rem 1.5rem;
+  border: 1px solid var(--ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--paper);
+  color: var(--ink);
+  position: relative;
+}
+.btn:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn-primary:hover {
+  background: var(--blood);
+  color: var(--paper);
+  border-color: var(--blood);
+}
+.btn-danger {
+  background: var(--paper);
+  color: var(--blood);
+  border-color: var(--blood);
+}
+.btn-danger:hover {
+  background: var(--blood);
+  color: var(--paper);
+}
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* form fields */
+.field {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  padding: 0.75rem 0;
+  font-family: "Satoshi", sans-serif;
+  font-size: 1.15rem;
+  color: var(--ink);
+  outline: none;
+}
+.field::placeholder {
+  color: var(--muted);
+}
+.field:focus {
+  border-bottom-color: var(--blood);
+}
+
+/* wallet-adapter overrides */
+.wallet-adapter-button {
+  background: var(--ink) !important;
+  color: var(--paper) !important;
+  border-radius: 0 !important;
+  font-family: "JetBrains Mono", monospace !important;
+  font-size: 0.8rem !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  font-weight: 500 !important;
+  height: auto !important;
+  padding: 0.85rem 1.5rem !important;
+  border: 1px solid var(--ink) !important;
+}
+.wallet-adapter-button:hover {
+  background: var(--blood) !important;
+  border-color: var(--blood) !important;
+}
+.wallet-adapter-modal-wrapper {
+  background: var(--paper) !important;
+  border-radius: 0 !important;
+  border: 1px solid var(--ink) !important;
+  font-family: "Satoshi", sans-serif !important;
+}
+.wallet-adapter-modal-title {
+  color: var(--ink) !important;
+}
+.wallet-adapter-modal-list .wallet-adapter-button {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+}
+
+/* classified document stamps */
+.stamp {
+  position: absolute;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  color: var(--blood);
+  border: 2px solid var(--blood);
+  padding: 0.15em 0.5em;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
+  opacity: 0.85;
+  font-size: 0.7rem;
+  pointer-events: none;
+}
+
+/* focus ring */
+*:focus-visible {
+  outline: 2px solid var(--blood);
+  outline-offset: 2px;
+}
+
+/* selection */
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
