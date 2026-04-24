@@ -134,6 +134,6 @@ shroud.vercel.app
 
 Short answer:
 
-> Each stream gets a one-time burner keypair. It shields + delegates into PER once, then a Vercel cron hits transferToUsernameDeposit on cadence inside the TEE. The burner's secret is AES-GCM wrapped server-side with a scheduler secret — blast radius is capped at active stream balances, user's main wallet is never server-custodied. On cancel or completion, undelegate + refund dust to the original payer.
+> Each stream gets a one-time burner keypair. It shields + delegates into PER once, then a Vercel cron hits transferToUsernameDeposit on cadence inside the TEE. The burner's secret is AES-GCM wrapped server-side with a scheduler secret — blast radius is capped at active stream balances, user's main wallet is never server-custodied. On cancel or completion, the stream is undelegated and unwound back to base.
 
 That's the whole trick. It's embarrassingly simple once you see it. Which is why nobody else in the thread will ship it.

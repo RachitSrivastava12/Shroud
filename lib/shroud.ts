@@ -31,13 +31,11 @@ import {
 import {
   Keypair,
   PublicKey,
-  Connection,
   type Commitment,
 } from "@solana/web3.js";
 import {
   getAssociatedTokenAddressSync,
   NATIVE_MINT,
-  createAssociatedTokenAccountIdempotentInstruction,
 } from "@solana/spl-token";
 
 // ─── config ─────────────────────────────────────────────────────────────
@@ -126,7 +124,7 @@ export interface StreamSummary {
 // ─── client ──────────────────────────────────────────────────────────────
 
 export interface BuildClientOpts {
-  signer: Keypair | any; // Keypair | WalletLike
+  signer: Keypair | Record<string, unknown>;
   commitment?: Commitment;
 }
 

@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import {
-  Connection,
   Keypair,
   PublicKey,
   SystemProgram,
@@ -15,7 +14,6 @@ import {
   getAssociatedTokenAddressSync,
   NATIVE_MINT,
   createSyncNativeInstruction,
-  createCloseAccountInstruction,
 } from "@solana/spl-token";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
@@ -24,7 +22,6 @@ import {
   shieldForStream,
   toMinor,
   getToken,
-  BASE_RPC,
   CADENCE_MS,
   type Cadence,
 } from "@/lib/shroud";
@@ -202,11 +199,11 @@ export function useCreateStream() {
         const { stream } = await regRes.json();
 
         setStatus({ phase: "done", streamId: stream.id });
-      } catch (e: any) {
-        console.error(e);
+      } catch (error) {
+        console.error(error);
         setStatus({
           phase: "error",
-          message: e?.message ?? "unknown error",
+          message: error instanceof Error ? error.message : "unknown error",
         });
       }
     },

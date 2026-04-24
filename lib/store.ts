@@ -2,15 +2,12 @@
  * Stream store
  * ------------
  * Persistence for Stream records. Upstash Redis in production, local JSON
- * file in dev so you don't need any services to run `bun dev`.
+ * file in dev so you don't need any external service to run the app locally.
  *
- * Security note: this store holds the scheduler's signer reference and the
- * stream schedule, NOT the private keys themselves. Keys live in
- * SCHEDULER_SECRET (a single server-side hot key) and NEVER leave the backend.
- * The user signs the initial shield tx with their real wallet; for recurring
- * ticks, they pre-sign a session that authorizes only `transferDeposit` for
- * the stream's specific amount and cadence. In this MVP, the payer uses a
- * delegated PDA signer flow — see route.ts for how we authorize ticks.
+ * Security note: this store holds stream metadata plus the AES-GCM wrapped
+ * burner key envelope. The burner secret is never persisted in plaintext.
+ * The scheduler decrypts the envelope in memory only when it needs to execute
+ * a recurring tick or unwind a stream.
  */
 
 import { Redis } from "@upstash/redis";
@@ -106,7 +103,9 @@ export async function listDueStreams(now: number, limit = 50): Promise<Stream[]>
   );
 }
 
-function normalize(s: any): Stream {
+type StreamRecord = Record<string, unknown>;
+
+function normalize(s: StreamRecord): Stream {
   return {
     ...s,
     executedTicks: Number(s.executedTicks ?? 0),

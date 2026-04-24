@@ -1,15 +1,23 @@
 "use client";
 
-import { FC, useState } from "react";
+import { useState } from "react";
 import clsx from "clsx";
 
-export const RedactedAmount: FC<{
+type RedactedAmountProps = {
   value: string;
   suffix?: string;
   revealOnHover?: boolean;
   width?: string;
   className?: string;
-}> = ({ value, suffix, revealOnHover = true, width = "7ch", className }) => {
+};
+
+export function RedactedAmount({
+  value,
+  suffix,
+  revealOnHover = true,
+  width = "7ch",
+  className,
+}: RedactedAmountProps) {
   const [revealed, setRevealed] = useState(false);
   return (
     <span
@@ -32,4 +40,4 @@ export const RedactedAmount: FC<{
       )}
     </span>
   );
-};
+}

@@ -61,10 +61,13 @@ export async function POST(req: NextRequest) {
       tokenMint,
       remaining: BigInt(remaining),
     });
-  } catch (e: any) {
-    console.error("cancel on-chain failed", e);
+  } catch (error) {
+    console.error("cancel on-chain failed", error);
     return NextResponse.json(
-      { error: "onchain_cancel_failed", detail: e?.message },
+      {
+        error: "onchain_cancel_failed",
+        detail: error instanceof Error ? error.message : "unknown",
+      },
       { status: 500 },
     );
   }

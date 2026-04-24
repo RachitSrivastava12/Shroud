@@ -1,7 +1,5 @@
 "use client";
 
-import { FC } from "react";
-
 const PHRASES = [
   "CLASSIFIED",
   "NO TRACE",
@@ -13,7 +11,7 @@ const PHRASES = [
   "SETTLEMENT: PUBLIC",
 ];
 
-export const Ticker: FC = () => {
+export function Ticker() {
   const items = [...PHRASES, ...PHRASES, ...PHRASES];
   return (
     <div className="border-y hairline py-3 overflow-hidden bg-ink text-paper">
@@ -27,4 +25,4 @@ export const Ticker: FC = () => {
       </div>
     </div>
   );
-};
+}

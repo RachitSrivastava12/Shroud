@@ -1,11 +1,14 @@
 "use client";
 
-import { FC } from "react";
 import Link from "next/link";
 import { ShroudMark } from "./ShroudMark";
 import { ConnectButton } from "./ConnectButton";
 
-export const Header: FC<{ showNav?: boolean }> = ({ showNav = true }) => {
+type HeaderProps = {
+  showNav?: boolean;
+};
+
+export function Header({ showNav = true }: HeaderProps) {
   return (
     <header className="border-b hairline">
       <div className="max-w-7xl mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
@@ -32,9 +35,9 @@ export const Header: FC<{ showNav?: boolean }> = ({ showNav = true }) => {
       </div>
     </header>
   );
-};
+}
 
-export const Footer: FC = () => {
+export function Footer() {
   return (
     <footer className="border-t hairline mt-32">
       <div className="max-w-7xl mx-auto px-6 md:px-10 py-10 grid md:grid-cols-3 gap-8 font-mono text-xs">
@@ -73,4 +76,4 @@ export const Footer: FC = () => {
       </div>
     </footer>
   );
-};
+}

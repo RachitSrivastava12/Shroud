@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Header, Footer } from "@/components/SiteChrome";
 import { Ticker } from "@/components/Ticker";
-import { RedactedAmount } from "@/components/RedactedAmount";
 import { ArrowRight, Lock, Clock, Eye } from "lucide-react";
 
 export default function Page() {

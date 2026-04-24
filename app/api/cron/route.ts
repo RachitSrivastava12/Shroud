@@ -1,8 +1,8 @@
 /**
  * /api/cron
  * ---------
- * Invoked by Vercel Cron every minute (see vercel.json). For each active
- * stream whose nextRunAt <= now, we:
+ * Invoked by the configured Vercel Cron schedule (see vercel.json). For each
+ * active stream whose nextRunAt <= now, we:
  *   1. Decrypt the burner keypair from its envelope
  *   2. Build a Loyal client using the burner as signer
  *   3. Call transferToUsernameDeposit(amountPerTick) — this is a PER op,
@@ -10,8 +10,8 @@
  *   4. Increment executedTicks, advance nextRunAt
  *   5. If executedTicks == totalTicks, mark completed and undelegate + refund
  *
- * Failure handling: a failed tick does not mark the stream failed. We retry
- * on the next cron tick. If a stream fails 5 consecutive times it's paused.
+ * Failure handling: a failed tick does not change stream state. The scheduler
+ * simply retries on the next cron run.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
       };
       await putStream(updated);
 
-      // If stream finished, auto-unshield remaining dust + refund to payer
+      // If the stream finished, best-effort undelegate and withdraw any dust.
       if (isDone) {
         try {
           const summary = summarize(updated);
@@ -78,16 +78,24 @@ export async function GET(req: NextRequest) {
             tokenMint,
             remaining: BigInt(summary.remaining),
           });
-        } catch (e: any) {
+        } catch (error) {
           // completion cleanup is best-effort
-          console.error("auto-unshield failed", fresh.id, e?.message);
+          console.error(
+            "auto-unshield failed",
+            fresh.id,
+            error instanceof Error ? error.message : error,
+          );
         }
       }
 
       results.push({ id: stream.id, status: "ticked", detail: sig });
-    } catch (e: any) {
-      console.error(`tick failed for ${stream.id}:`, e);
-      results.push({ id: stream.id, status: "failed", detail: e?.message ?? "unknown" });
+    } catch (error) {
+      console.error(`tick failed for ${stream.id}:`, error);
+      results.push({
+        id: stream.id,
+        status: "failed",
+        detail: error instanceof Error ? error.message : "unknown",
+      });
     }
   }
 

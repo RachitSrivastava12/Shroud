@@ -1,19 +1,25 @@
 "use client";
 
-import { FC, useState } from "react";
+import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
 import { format, formatDistanceToNowStrict } from "date-fns";
-import type { Stream } from "@/lib/shroud";
-import { getToken, toDisplay } from "@/lib/shroud";
+import { NETWORK, getToken, toDisplay, type Stream } from "@/lib/shroud";
 import { RedactedAmount } from "./RedactedAmount";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-export const StreamCard: FC<{ stream: Omit<Stream, "burnerKeyEnvelope">; onChanged?: () => void }> = ({
+type StreamCardProps = {
+  stream: Omit<Stream, "burnerKeyEnvelope">;
+  onChanged?: () => void;
+};
+
+const SOLSCAN_CLUSTER = NETWORK === "mainnet" ? "" : "?cluster=devnet";
+
+export function StreamCard({
   stream,
   onChanged,
-}) => {
+}: StreamCardProps) {
   const wallet = useWallet();
   const [cancelling, setCancelling] = useState(false);
 
@@ -39,7 +45,9 @@ export const StreamCard: FC<{ stream: Omit<Stream, "burnerKeyEnvelope">; onChang
       toast.error("Wallet required");
       return;
     }
-    if (!confirm("Cancel this stream? Remaining funds will be refunded to your wallet.")) return;
+    if (!confirm("Cancel this stream? The remaining shielded balance will be unwound.")) {
+      return;
+    }
     setCancelling(true);
     try {
       const challenge = `shroud:cancel:${stream.id}:${Date.now()}`;
@@ -57,10 +65,10 @@ export const StreamCard: FC<{ stream: Omit<Stream, "burnerKeyEnvelope">; onChang
         const err = await res.json();
         throw new Error(err?.error ?? "cancel failed");
       }
-      toast.success("Stream cancelled. Refund in your wallet shortly.");
+      toast.success("Stream cancelled. Unwind request submitted.");
       onChanged?.();
-    } catch (e: any) {
-      toast.error(e?.message ?? "cancel failed");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "cancel failed");
     } finally {
       setCancelling(false);
     }
@@ -142,7 +150,7 @@ export const StreamCard: FC<{ stream: Omit<Stream, "burnerKeyEnvelope">; onChang
         <div className="mt-6 flex items-center justify-between">
           {stream.shieldTxSig && (
             <a
-              href={`https://solscan.io/tx/${stream.shieldTxSig}?cluster=devnet`}
+              href={`https://solscan.io/tx/${stream.shieldTxSig}${SOLSCAN_CLUSTER}`}
               target="_blank"
               rel="noreferrer"
               className="font-mono text-xs text-muted hover:text-blood"
@@ -167,4 +175,4 @@ export const StreamCard: FC<{ stream: Omit<Stream, "burnerKeyEnvelope">; onChang
       )}
     </div>
   );
-};
+}

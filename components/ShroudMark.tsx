@@ -1,14 +1,17 @@
 "use client";
 
-import { FC } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 
-export const ShroudMark: FC<{ className?: string; size?: "sm" | "md" | "lg" }> = ({
+type ShroudMarkProps = {
+  className?: string;
+  size?: "sm" | "md" | "lg";
+};
+
+export function ShroudMark({
   className,
   size = "md",
-}) => {
-  const h = size === "lg" ? "h-10" : size === "sm" ? "h-5" : "h-7";
+}: ShroudMarkProps) {
   return (
     <Link
       href="/"
@@ -35,4 +38,4 @@ export const ShroudMark: FC<{ className?: string; size?: "sm" | "md" | "lg" }> =
       </span>
     </Link>
   );
-};
+}

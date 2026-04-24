@@ -55,7 +55,7 @@ Total base-layer transactions: **2**. Total private payments executed: **52**.
   N+2. modifyBalance (vault → user)
 ```
 
-Every tick is one CPI call against the TEE. The scheduler runs them. The user's main wallet is touched **exactly twice** per stream lifetime — once to fund, once to refund dust.
+Every tick is one CPI call against the TEE. The scheduler runs them. The user's main wallet is touched at stream setup, and the stream is later unwound back to base layer on cancel or completion.
 
 ---
 
@@ -82,15 +82,15 @@ Upstash Redis in production, a local JSON file in dev. The store holds stream me
 
 ### Scheduler
 
-Vercel Cron hits `/api/cron` every minute. Each invocation:
+Vercel Cron hits `/api/cron` on the schedule configured in `vercel.json`. Each invocation:
 
 1. Fetches streams with `nextRunAt <= now()` (a Redis ZSET range query)
 2. Decrypts the burner, builds a Loyal client with it
 3. Calls `transferToUsernameDeposit`
 4. Advances `nextRunAt`, increments `executedTicks`
-5. If stream is complete, auto-unshields and refunds remaining balance to payer
+5. If a stream is complete, it is auto-unshielded and any remaining dust is withdrawn during cleanup
 
-Authenticated via `CRON_SECRET`. Failed ticks retry on the next minute — no manual recovery needed.
+Authenticated via `CRON_SECRET`. Failed ticks are retried on the next scheduled cron run — no manual recovery needed.
 
 ### Stack
 
@@ -152,7 +152,7 @@ If you set `CRON_SECRET`, pass it as `Authorization: Bearer $CRON_SECRET`.
 5. Vercel reads `vercel.json` and registers the cron automatically.
 6. Deploy.
 
-Vercel cron fires `/api/cron` every minute on the Hobby plan once deployed.
+Vercel registers the cron from `vercel.json` once deployed.
 
 ---
 

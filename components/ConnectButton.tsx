@@ -1,10 +1,9 @@
 "use client";
 
-import { FC } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 
-export const ConnectButton: FC = () => {
+export function ConnectButton() {
   const { publicKey, connected } = useWallet();
   return (
     <div className="flex items-center gap-3">
@@ -16,4 +15,4 @@ export const ConnectButton: FC = () => {
       <WalletMultiButton />
     </div>
   );
-};
+}

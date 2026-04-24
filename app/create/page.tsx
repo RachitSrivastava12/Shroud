@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { type FormEvent, type ReactNode, useState } from "react";
 import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Header, Footer } from "@/components/SiteChrome";
 import { useCreateStream, type StreamDraft } from "@/lib/useCreateStream";
-import { CADENCE_MS, validateHandle, normalizeHandle } from "@/lib/shroud";
+import { validateHandle, normalizeHandle } from "@/lib/shroud";
 import { toast } from "sonner";
 import { Check, Loader2, ArrowRight } from "lucide-react";
 
@@ -49,7 +49,7 @@ export default function CreatePage() {
     status.phase !== "shielding" &&
     status.phase !== "registering";
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canSubmit) return;
     const draft: StreamDraft = {
@@ -62,8 +62,8 @@ export default function CreatePage() {
     };
     try {
       await create(draft);
-    } catch (err: any) {
-      toast.error(err?.message ?? "Failed to create stream");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to create stream");
     }
   };
 
@@ -276,7 +276,7 @@ export default function CreatePage() {
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
       <span className="eyebrow">{label}</span>
