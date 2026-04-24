@@ -62,7 +62,7 @@ export async function putStream(stream: Stream): Promise<void> {
 
 export async function getStream(id: string): Promise<Stream | null> {
   if (USE_REDIS && redis) {
-    const s = await redis.hgetall<Stream>(`stream:${id}`);
+    const s = await redis.hgetall<Record<string, unknown>>(`stream:${id}`);
     if (!s || !s.id) return null;
     return normalize(s);
   }
