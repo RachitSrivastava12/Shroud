@@ -1,27 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { FC, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
 import { format, formatDistanceToNowStrict } from "date-fns";
-import { NETWORK, getToken, toDisplay, type Stream } from "@/lib/shroud";
+import type { Stream } from "@/lib/shroud";
+import { getToken, toDisplay } from "@/lib/shroud";
 import { RedactedAmount } from "./RedactedAmount";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Share2, Check } from "lucide-react";
 
-type StreamCardProps = {
-  stream: Omit<Stream, "burnerKeyEnvelope">;
-  onChanged?: () => void;
-};
-
-const SOLSCAN_CLUSTER = NETWORK === "mainnet" ? "" : "?cluster=devnet";
-
-export function StreamCard({
+export const StreamCard: FC<{ stream: Omit<Stream, "burnerKeyEnvelope">; onChanged?: () => void }> = ({
   stream,
   onChanged,
-}: StreamCardProps) {
+}) => {
   const wallet = useWallet();
   const [cancelling, setCancelling] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const token = getToken(stream.tokenSymbol);
   const perTick = toDisplay(BigInt(stream.amountPerTick), token.decimals);
@@ -40,14 +35,26 @@ export function StreamCard({
 
   const pct = (stream.executedTicks / stream.totalTicks) * 100;
 
+  const sharePublic = async () => {
+    const url = `${window.location.origin}/s/${stream.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Public dossier link copied", {
+        description: "Anyone with this link sees the redacted ledger view — no wallet needed.",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Could not copy. URL: " + url);
+    }
+  };
+
   const cancel = async () => {
     if (!wallet.publicKey || !wallet.signMessage) {
       toast.error("Wallet required");
       return;
     }
-    if (!confirm("Cancel this stream? The remaining shielded balance will be unwound.")) {
-      return;
-    }
+    if (!confirm("Cancel this stream? Remaining funds will be refunded to your wallet.")) return;
     setCancelling(true);
     try {
       const challenge = `shroud:cancel:${stream.id}:${Date.now()}`;
@@ -65,10 +72,10 @@ export function StreamCard({
         const err = await res.json();
         throw new Error(err?.error ?? "cancel failed");
       }
-      toast.success("Stream cancelled. Unwind request submitted.");
+      toast.success("Stream cancelled. Refund in your wallet shortly.");
       onChanged?.();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "cancel failed");
+    } catch (e: any) {
+      toast.error(e?.message ?? "cancel failed");
     } finally {
       setCancelling(false);
     }
@@ -93,7 +100,7 @@ export function StreamCard({
           </div>
           {stream.note && (
             <div className="mt-1 text-sm text-muted italic font-serif">
-              “{stream.note}”
+              &ldquo;{stream.note}&rdquo;
             </div>
           )}
         </div>
@@ -146,18 +153,28 @@ export function StreamCard({
         </div>
       </div>
 
-      {stream.state === "active" && (
-        <div className="mt-6 flex items-center justify-between">
+      <div className="mt-6 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3 font-mono text-xs">
+          <button
+            onClick={sharePublic}
+            className="text-muted hover:text-blood inline-flex items-center gap-1.5 transition-colors"
+            title="Copy public dossier link"
+          >
+            {copied ? <Check size={12} /> : <Share2 size={12} />}
+            {copied ? "copied" : "share public link"}
+          </button>
           {stream.shieldTxSig && (
             <a
-              href={`https://solscan.io/tx/${stream.shieldTxSig}${SOLSCAN_CLUSTER}`}
+              href={`https://solscan.io/tx/${stream.shieldTxSig}?cluster=devnet`}
               target="_blank"
               rel="noreferrer"
-              className="font-mono text-xs text-muted hover:text-blood"
+              className="text-muted hover:text-blood"
             >
               shield tx ↗
             </a>
           )}
+        </div>
+        {stream.state === "active" && (
           <button
             onClick={cancel}
             disabled={cancelling}
@@ -171,8 +188,8 @@ export function StreamCard({
               "Cancel & refund"
             )}
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
-}
+};

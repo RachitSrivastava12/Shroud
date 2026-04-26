@@ -1,13 +1,13 @@
 "use client";
 
-import { type FormEvent, type ReactNode, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Header, Footer } from "@/components/SiteChrome";
 import { useCreateStream, type StreamDraft } from "@/lib/useCreateStream";
-import { validateHandle, normalizeHandle } from "@/lib/shroud";
+import { CADENCE_MS, validateHandle, normalizeHandle } from "@/lib/shroud";
 import { toast } from "sonner";
-import { Check, Loader2, ArrowRight } from "lucide-react";
+import { Check, Loader2, ArrowRight, Copy } from "lucide-react";
 
 const CADENCES = [
   { k: "daily", label: "Daily", every: "every 24h" },
@@ -18,6 +18,7 @@ const CADENCES = [
 export default function CreatePage() {
   const wallet = useWallet();
   const { status, create } = useCreateStream();
+  const [copied, setCopied] = useState(false);
 
   const [handle, setHandle] = useState("");
   const [tokenSymbol, setTokenSymbol] = useState<"SOL" | "USDC">("USDC");
@@ -49,7 +50,7 @@ export default function CreatePage() {
     status.phase !== "shielding" &&
     status.phase !== "registering";
 
-  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
     const draft: StreamDraft = {
@@ -62,12 +63,27 @@ export default function CreatePage() {
     };
     try {
       await create(draft);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create stream");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to create stream");
     }
   };
 
   if (status.phase === "done") {
+    const publicUrl =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/s/${status.streamId}`
+        : `/s/${status.streamId}`;
+
+    const copyLink = async () => {
+      try {
+        await navigator.clipboard.writeText(publicUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        toast.error("Could not copy");
+      }
+    };
+
     return (
       <main>
         <Header />
@@ -79,7 +95,42 @@ export default function CreatePage() {
             transfer executes silently inside the TEE. Track it from your
             dashboard.
           </p>
-          <div className="mt-10 flex items-center justify-center gap-3">
+
+          {/* Public share link card */}
+          <div className="mt-12 border hairline bg-cream p-6 text-left">
+            <div className="eyebrow mb-3">§ shareable public dossier</div>
+            <p className="font-serif text-sm text-graphite mb-4">
+              Anyone with this link sees the redacted ledger — proof your
+              stream exists, with amounts hidden. No wallet required.
+            </p>
+            <div className="flex items-center gap-2 bg-paper border hairline p-3">
+              <code className="font-mono text-xs flex-1 truncate text-ink">
+                {publicUrl}
+              </code>
+              <button
+                onClick={copyLink}
+                className="btn text-xs flex-shrink-0"
+              >
+                {copied ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Check size={12} /> Copied
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Copy size={12} /> Copy
+                  </span>
+                )}
+              </button>
+            </div>
+            <Link
+              href={`/s/${status.streamId}`}
+              className="mt-3 inline-flex items-center gap-1 text-xs font-mono text-muted hover:text-blood"
+            >
+              Open public view <ArrowRight size={11} />
+            </Link>
+          </div>
+
+          <div className="mt-8 flex items-center justify-center gap-3">
             <Link href="/dashboard" className="btn btn-primary">
               Open dashboard
             </Link>
@@ -276,7 +327,7 @@ export default function CreatePage() {
   );
 }
 
-function Row({ label, children }: { label: string; children: ReactNode }) {
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
       <span className="eyebrow">{label}</span>
